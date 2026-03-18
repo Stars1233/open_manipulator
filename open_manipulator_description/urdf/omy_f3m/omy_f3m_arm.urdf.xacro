@@ -189,7 +189,7 @@
          <visual>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
-               <mesh filename="${meshes_file_direction}/end_unit.stl" scale="0.001 0.001 0.001" />
+               <mesh filename="${meshes_file_direction}/link6.stl" scale="0.001 0.001 0.001" />
             </geometry>
             <material name="grey">
                <color rgba="0.2 0.2 0.2 1" />

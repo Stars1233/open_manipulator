@@ -127,18 +127,17 @@ class ShapeDetectorNode(Node):
                 res.append(0.25 * p1 + 0.75 * p2)
             return np.array(res) if res else pts
 
-        def resample_1mm(seg):
-            """1mm equal resampling."""
-            if len(seg) < 2:
+        def resample_path(seg, num_pts):
+            """Resample segment to a fixed number of points."""
+            if len(seg) < 2 or num_pts < 2:
                 return seg
             diffs = np.diff(seg, axis=0)
             dists = np.sqrt(diffs[:, 0]**2 + diffs[:, 1]**2)
             cum = np.concatenate(([0], np.cumsum(dists)))
             total = cum[-1]
-            if total < 0.5:
+            if total < 1e-6:
                 return seg
-            n = max(2, int(total / 1.0))
-            targets = np.linspace(0, total, n)
+            targets = np.linspace(0, total, num_pts)
             rx = np.interp(targets, cum, seg[:, 0])
             ry = np.interp(targets, cum, seg[:, 1])
             return np.column_stack((rx, ry))
@@ -151,7 +150,7 @@ class ShapeDetectorNode(Node):
             pad_mode = 'wrap' if is_closed else 'edge'
             px = np.convolve(np.pad(smoothed[:, 0], (2, 2), mode=pad_mode), kernel, mode='valid')
             py = np.convolve(np.pad(smoothed[:, 1], (2, 2), mode=pad_mode), kernel, mode='valid')
-            result = resample_1mm(np.column_stack((px, py)))
+            result = resample_path(np.column_stack((px, py)), self.resample_pts)
             if is_closed:
                 result[-1] = result[0]
                 return np.vstack([result, result[1:3]])
@@ -181,7 +180,7 @@ class ShapeDetectorNode(Node):
             linearity = chord / arc if arc > 0 else 1.0
 
             if linearity > 0.98:
-                result_parts.append(resample_1mm(np.array([seg[0], seg[-1]])))
+                result_parts.append(resample_path(np.array([seg[0], seg[-1]]), 2))
             else:
                 smoothed = seg.copy()
                 for _ in range(2):
@@ -193,7 +192,7 @@ class ShapeDetectorNode(Node):
                     py = np.convolve(
                         np.pad(smoothed[:, 1], (2, 2), mode='edge'), kernel, mode='valid')
                     smoothed = np.column_stack((px, py))
-                result_parts.append(resample_1mm(smoothed))
+                result_parts.append(resample_path(smoothed, self.resample_pts))
 
         if not result_parts:
             return pts_float
@@ -312,7 +311,8 @@ class ShapeDetectorNode(Node):
 
                 if solidity > 0.90 and area > 1000:
                     initial_paths.append(
-                        self.smooth_trajectory(cnt.reshape(-1, 2), is_closed=True))
+                        self.smooth_trajectory(
+                            cnt.reshape(-1, 2), sigma=self.sigma_base, is_closed=True))
                 else:
                     temp_mask = np.zeros_like(thresh)
                     cv2.drawContours(temp_mask, all_cnts, i, 255, -1)
@@ -330,7 +330,8 @@ class ShapeDetectorNode(Node):
 
             d_start_end = np.linalg.norm(single_line_pts[0] - single_line_pts[-1])
             is_closed_loop = d_start_end < 12.0
-            smoothed = self.smooth_trajectory(single_line_pts, is_closed=is_closed_loop)
+            smoothed = self.smooth_trajectory(
+                single_line_pts, sigma=self.sigma_base, is_closed=is_closed_loop)
             initial_paths.append(smoothed)
 
         if not initial_paths:

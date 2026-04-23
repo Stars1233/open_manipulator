@@ -55,7 +55,8 @@ class ShapeDetectorNode(Node):
 
         # Headless protection
         if self.enable_debug and 'DISPLAY' not in os.environ:
-            self.get_logger().warn('enable_debug_view is True but no DISPLAY found. Disabling GUI.')
+            self.get_logger().warn(
+                'enable_debug_view is True but no DISPLAY found. Disabling GUI.')
             self.enable_debug = False
 
         self.publisher = self.create_publisher(PoseArray, self.traj_topic, 10)
@@ -187,8 +188,10 @@ class ShapeDetectorNode(Node):
                     smoothed = chaikin(smoothed)
                 kernel = np.array([0.1, 0.2, 0.4, 0.2, 0.1])
                 if len(smoothed) > 4:
-                    px = np.convolve(np.pad(smoothed[:, 0], (2, 2), mode='edge'), kernel, mode='valid')
-                    py = np.convolve(np.pad(smoothed[:, 1], (2, 2), mode='edge'), kernel, mode='valid')
+                    px = np.convolve(
+                        np.pad(smoothed[:, 0], (2, 2), mode='edge'), kernel, mode='valid')
+                    py = np.convolve(
+                        np.pad(smoothed[:, 1], (2, 2), mode='edge'), kernel, mode='valid')
                     smoothed = np.column_stack((px, py))
                 result_parts.append(resample_1mm(smoothed))
 
@@ -308,7 +311,8 @@ class ShapeDetectorNode(Node):
                 solidity = float(area) / hull_area if hull_area > 0 else 0
 
                 if solidity > 0.90 and area > 1000:
-                    initial_paths.append(self.smooth_trajectory(cnt.reshape(-1, 2), is_closed=True))
+                    initial_paths.append(
+                        self.smooth_trajectory(cnt.reshape(-1, 2), is_closed=True))
                 else:
                     temp_mask = np.zeros_like(thresh)
                     cv2.drawContours(temp_mask, all_cnts, i, 255, -1)

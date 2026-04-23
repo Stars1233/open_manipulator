@@ -101,7 +101,9 @@ class OmxTrajectoryControllerNode(Node):
             JointTrajectory, '/gripper_controller/joint_trajectory', 10
         )
         self.joint_state_pub = self.create_publisher(JointState, '/cyclo_joint_states', 10)
-        self.arm_traj_pub = self.create_publisher(JointTrajectory, '/arm_controller/joint_trajectory', 10)
+        self.arm_traj_pub = self.create_publisher(
+            JointTrajectory, '/arm_controller/joint_trajectory', 10
+        )
 
         # Internal State
         self.is_executing = False

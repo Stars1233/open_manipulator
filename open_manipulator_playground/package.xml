@@ -17,6 +17,11 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
   <depend>moveit_ros_planning_interface</depend>
   <depend>rclcpp</depend>
+  <depend>rclpy</depend>
+  <depend>geometry_msgs</depend>
+  <depend>trajectory_msgs</depend>
+  <depend>robotis_interfaces</depend>
+  <depend>std_msgs</depend>
   <export>
     <build_type>ament_cmake</build_type>
   </export>

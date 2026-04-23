@@ -1,13 +1,13 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import PoseArray, PoseStamped
+from geometry_msgs.msg import PoseArray
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from sensor_msgs.msg import JointState
 from robotis_interfaces.msg import MoveL
 from std_msgs.msg import Bool
 from rclpy.qos import qos_profile_sensor_data
-import time, math, sys, select, threading
+import math
 
 class OmxTrajectoryControllerNode(Node):
     """ Unified Controller & Bridge """
@@ -18,7 +18,6 @@ class OmxTrajectoryControllerNode(Node):
         self.declare_parameter('movel_topic', '/omx_movel_controller/movel')
         self.declare_parameter('drawing_z', 0.01)
         self.declare_parameter('hover_height', 0.05)
-        self.declare_parameter('sync_duration', 0.3)
         self.declare_parameter('home_x', 0.124)
         self.declare_parameter('home_y', 0.0)
         self.declare_parameter('home_z', 0.081)
@@ -30,7 +29,6 @@ class OmxTrajectoryControllerNode(Node):
         
         self.z_offset = float(self.get_parameter('drawing_z').value)
         self.hover_height = float(self.get_parameter('hover_height').value)
-        self.sync_dur = float(self.get_parameter('sync_duration').value)
         self.home_x = float(self.get_parameter('home_x').value)
         self.home_y = float(self.get_parameter('home_y').value)
         self.home_z = float(self.get_parameter('home_z').value)
@@ -70,7 +68,7 @@ class OmxTrajectoryControllerNode(Node):
         self.current_point_index, self.move_end_time = 0, 0.0
         
         # Timers
-        self.execution_timer = self.create_timer(0.005, self.execution_loop)
+        self.execution_timer = self.create_timer(0.02, self.execution_loop)
         self._auto_home_timer = self.create_timer(1.0, self.auto_home_once)
         self.add_on_set_parameters_callback(self.parameter_callback)
         
@@ -138,7 +136,8 @@ class OmxTrajectoryControllerNode(Node):
         self.last_positions = current_pos
 
     def leader_gripper_callback(self, msg):
-        msg.header.stamp = self.get_clock().now().to_msg()
+        msg.header.stamp.sec = 0
+        msg.header.stamp.nanosec = 0
         self.gripper_pub.publish(msg)
 
     def auto_home_once(self):
@@ -159,7 +158,7 @@ class OmxTrajectoryControllerNode(Node):
         self.get_logger().info(f"Starting mission with {len(points)} points")
         self.close_gripper()
         self.points, self.is_executing, self.current_point_index = points, True, 0
-        self.move_end_time = time.time()
+        self.move_end_time = self.get_clock().now().nanoseconds / 1e9
         self.status_pub.publish(Bool(data=True))
 
     def close_gripper(self):
@@ -195,8 +194,10 @@ class OmxTrajectoryControllerNode(Node):
         while target < dists[-1] and j < len(points_xy):
             while j < len(points_xy) and dists[j] < target: j += 1
             if j >= len(points_xy): break
-            t = (target - dists[j-1]) / (dists[j] - dists[j-1])
-            res.append((points_xy[j-1][0] + t*(points_xy[j][0]-points_xy[j-1][0]), points_xy[j-1][1] + t*(points_xy[j][1]-points_xy[j-1][1])))
+            denom = dists[j] - dists[j-1]
+            if denom > 1e-9:
+                t = (target - dists[j-1]) / denom
+                res.append((points_xy[j-1][0] + t*(points_xy[j][0]-points_xy[j-1][0]), points_xy[j-1][1] + t*(points_xy[j][1]-points_xy[j-1][1])))
             target += self.resample_step
         res.append(points_xy[-1])
         return res
@@ -278,7 +279,7 @@ class OmxTrajectoryControllerNode(Node):
 
     def execution_loop(self):
         if not self.is_executing or not self.points: return
-        now = time.time()
+        now = self.get_clock().now().nanoseconds / 1e9
         if now >= self.move_end_time:
             if self.current_point_index < len(self.points):
                 c = self.points[self.current_point_index]

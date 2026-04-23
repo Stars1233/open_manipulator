@@ -1,4 +1,4 @@
-#!/usr/bin/python3.12
+#!/usr/bin/env python3
 # Copyright 2026 ROBOTIS CO., LTD.
 
 import rclpy
@@ -6,7 +6,6 @@ from rclpy.node import Node
 from geometry_msgs.msg import PoseArray, Pose
 import cv2
 import numpy as np
-import time
 import os
 
 class ShapeDetectorNode(Node):
@@ -22,6 +21,7 @@ class ShapeDetectorNode(Node):
         self.declare_parameter('workspace_z', 0.003)
         self.declare_parameter('smoothing_sigma', 1.0)
         self.declare_parameter('resample_num_pts', 100)
+        self.declare_parameter('enable_debug_view', False)
         
         self.image_path = self.get_parameter('image_path').value
         self.traj_topic = self.get_parameter('trajectory_topic').value
@@ -32,6 +32,12 @@ class ShapeDetectorNode(Node):
         self.z_draw = self.get_parameter('workspace_z').value
         self.sigma_base = self.get_parameter('smoothing_sigma').value
         self.resample_pts = self.get_parameter('resample_num_pts').value
+        self.enable_debug = self.get_parameter('enable_debug_view').value
+
+        # Headless protection
+        if self.enable_debug and "DISPLAY" not in os.environ:
+            self.get_logger().warn("enable_debug_view is True but no DISPLAY found. Disabling GUI.")
+            self.enable_debug = False
         
         self.publisher = self.create_publisher(PoseArray, self.traj_topic, 10)
         
@@ -41,7 +47,9 @@ class ShapeDetectorNode(Node):
         self.vis_img = None
         self.process_once()
         
-        self.ui_timer = self.create_timer(0.033, self.ui_timer_callback)
+        self.ui_timer = None
+        if self.enable_debug:
+            self.ui_timer = self.create_timer(0.033, self.ui_timer_callback)
         self.timer = self.create_timer(10.0, self.timer_callback)
         self.add_on_set_parameters_callback(self.parameter_callback)
 
@@ -59,6 +67,19 @@ class ShapeDetectorNode(Node):
             elif param.name == 'resample_num_pts':
                 self.resample_pts = param.value
                 self.process_once(reset=True)
+            elif param.name == 'enable_debug_view':
+                self.enable_debug = param.value
+                if self.enable_debug and "DISPLAY" not in os.environ:
+                    self.get_logger().warn("Cannot enable debug view: No DISPLAY found.")
+                    self.enable_debug = False
+                
+                # Manage timer
+                if self.enable_debug and self.ui_timer is None:
+                    self.ui_timer = self.create_timer(0.033, self.ui_timer_callback)
+                elif not self.enable_debug and self.ui_timer is not None:
+                    self.ui_timer.cancel()
+                    self.ui_timer = None
+                    cv2.destroyAllWindows()
         from rcl_interfaces.msg import SetParametersResult
         return SetParametersResult(successful=True)
 

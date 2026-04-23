@@ -21,6 +21,7 @@ def generate_launch_description():
     )
     joint5_angle_arg = DeclareLaunchArgument('joint5_angle', default_value='90.0')
     hover_height_arg = DeclareLaunchArgument('hover_height', default_value='0.08')
+    enable_debug_view_arg = DeclareLaunchArgument('enable_debug_view', default_value='false')
 
     # shape detector node
     shape_detector = Node(
@@ -37,7 +38,8 @@ def generate_launch_description():
             {'workspace_y_max': 0.13},  
             {'workspace_z': LaunchConfiguration('drawing_height')},
             {'smoothing_sigma': LaunchConfiguration('smoothing_sigma')},
-            {'resample_num_pts': LaunchConfiguration('resample_num_pts')}
+            {'resample_num_pts': LaunchConfiguration('resample_num_pts')},
+            {'enable_debug_view': LaunchConfiguration('enable_debug_view')}
         ]
     )
     
@@ -72,6 +74,7 @@ def generate_launch_description():
         image_path_arg,
         joint5_angle_arg,
         hover_height_arg,
+        enable_debug_view_arg,
         shape_detector,
         omx_controller
     ])

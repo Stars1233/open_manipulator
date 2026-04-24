@@ -534,3 +534,6 @@ doc/
 
 ## IDE: Cursor
 .cursor/
+install/
+log/
+build/

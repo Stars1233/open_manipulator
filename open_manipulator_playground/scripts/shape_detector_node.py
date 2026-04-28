@@ -41,7 +41,6 @@ class ShapeDetectorNode(Node):
         self.declare_parameter('smoothing_sigma', 1.0)
         self.declare_parameter('resample_num_pts', 100)
 
-
         self.image_path = self.get_parameter('image_path').value
         self.traj_topic = self.get_parameter('trajectory_topic').value
         self.x_min = self.get_parameter('workspace_x_min').value
@@ -87,15 +86,6 @@ class ShapeDetectorNode(Node):
             elif param.name == 'resample_num_pts':
                 self.resample_pts = param.value
                 self.process_once(reset=True)
-
-
-                # Manage timer
-                if self.enable_debug and self.ui_timer is None:
-                    self.ui_timer = self.create_timer(0.033, self.ui_timer_callback)
-                elif not self.enable_debug and self.ui_timer is not None:
-                    self.ui_timer.cancel()
-                    self.ui_timer = None
-                    cv2.destroyAllWindows()
         return SetParametersResult(successful=True)
 
     def smooth_trajectory(self, points, sigma=1.0, is_closed=False):

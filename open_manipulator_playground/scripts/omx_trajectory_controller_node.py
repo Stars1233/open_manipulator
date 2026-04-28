@@ -37,7 +37,6 @@ class OmxTrajectoryControllerNode(Node):
         self.declare_parameter('trajectory_topic', '/shape_detector_node/drawing_trajectory')
         self.declare_parameter('movel_topic', '/omx_movel_controller/movel')
         self.declare_parameter('drawing_z', 0.01)
-
         self.declare_parameter('approach_duration', 3.0)
         self.declare_parameter('home_duration', 6.0)
         self.declare_parameter('joint5_angle', 90.0)
@@ -120,12 +119,10 @@ class OmxTrajectoryControllerNode(Node):
         for param in params:
             if param.name == 'drawing_z':
                 self.z_offset = param.value
-
             elif param.name == 'drawing_segment_dur':
                 self.base_dur = param.value
             elif param.name == 'resample_step':
                 self.resample_step = param.value
-
             elif param.name == 'approach_duration':
                 self.approach_dur = param.value
             elif param.name == 'home_duration':

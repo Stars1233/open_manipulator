@@ -40,7 +40,7 @@ class ShapeDetectorNode(Node):
         self.declare_parameter('workspace_z', 0.003)
         self.declare_parameter('smoothing_sigma', 1.0)
         self.declare_parameter('resample_num_pts', 100)
-        self.declare_parameter('enable_debug_view', False)
+
 
         self.image_path = self.get_parameter('image_path').value
         self.traj_topic = self.get_parameter('trajectory_topic').value
@@ -51,7 +51,7 @@ class ShapeDetectorNode(Node):
         self.z_draw = self.get_parameter('workspace_z').value
         self.sigma_base = self.get_parameter('smoothing_sigma').value
         self.resample_pts = self.get_parameter('resample_num_pts').value
-        self.enable_debug = self.get_parameter('enable_debug_view').value
+        self.enable_debug = False
 
         # Headless protection
         if self.enable_debug and 'DISPLAY' not in os.environ:
@@ -87,11 +87,7 @@ class ShapeDetectorNode(Node):
             elif param.name == 'resample_num_pts':
                 self.resample_pts = param.value
                 self.process_once(reset=True)
-            elif param.name == 'enable_debug_view':
-                self.enable_debug = param.value
-                if self.enable_debug and 'DISPLAY' not in os.environ:
-                    self.get_logger().warn('Cannot enable debug view: No DISPLAY found.')
-                    self.enable_debug = False
+
 
                 # Manage timer
                 if self.enable_debug and self.ui_timer is None:

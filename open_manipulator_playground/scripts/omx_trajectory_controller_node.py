@@ -37,10 +37,7 @@ class OmxTrajectoryControllerNode(Node):
         self.declare_parameter('trajectory_topic', '/shape_detector_node/drawing_trajectory')
         self.declare_parameter('movel_topic', '/omx_movel_controller/movel')
         self.declare_parameter('drawing_z', 0.01)
-        self.declare_parameter('hover_height', 0.05)
-        self.declare_parameter('home_x', 0.124)
-        self.declare_parameter('home_y', 0.0)
-        self.declare_parameter('home_z', 0.081)
+
         self.declare_parameter('approach_duration', 3.0)
         self.declare_parameter('home_duration', 6.0)
         self.declare_parameter('joint5_angle', 90.0)
@@ -48,10 +45,10 @@ class OmxTrajectoryControllerNode(Node):
         self.declare_parameter('resample_step', 0.001)
 
         self.z_offset = float(self.get_parameter('drawing_z').value)
-        self.hover_height = float(self.get_parameter('hover_height').value)
-        self.home_x = float(self.get_parameter('home_x').value)
-        self.home_y = float(self.get_parameter('home_y').value)
-        self.home_z = float(self.get_parameter('home_z').value)
+        self.hover_height = 0.08
+        self.home_x = 0.124
+        self.home_y = 0.0
+        self.home_z = 0.081
         self.approach_dur = float(self.get_parameter('approach_duration').value)
         self.home_dur = float(self.get_parameter('home_duration').value)
         self.joint5_angle = float(self.get_parameter('joint5_angle').value)
@@ -123,18 +120,12 @@ class OmxTrajectoryControllerNode(Node):
         for param in params:
             if param.name == 'drawing_z':
                 self.z_offset = param.value
-            elif param.name == 'hover_height':
-                self.hover_height = param.value
+
             elif param.name == 'drawing_segment_dur':
                 self.base_dur = param.value
             elif param.name == 'resample_step':
                 self.resample_step = param.value
-            elif param.name == 'home_x':
-                self.home_x = param.value
-            elif param.name == 'home_y':
-                self.home_y = param.value
-            elif param.name == 'home_z':
-                self.home_z = param.value
+
             elif param.name == 'approach_duration':
                 self.approach_dur = param.value
             elif param.name == 'home_duration':

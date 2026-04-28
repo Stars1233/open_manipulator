@@ -28,9 +28,6 @@ def generate_launch_description():
     drawing_height_arg = DeclareLaunchArgument('drawing_height', default_value='0.025')
     smoothing_sigma_arg = DeclareLaunchArgument('smoothing_sigma', default_value='1.0')
     resample_num_pts_arg = DeclareLaunchArgument('resample_num_pts', default_value='100')
-    home_x_arg = DeclareLaunchArgument('home_x', default_value='0.124')
-    home_y_arg = DeclareLaunchArgument('home_y', default_value='0.0')
-    home_z_arg = DeclareLaunchArgument('home_z', default_value='0.081')
     approach_duration_arg = DeclareLaunchArgument('approach_duration', default_value='2.0')
     home_duration_arg = DeclareLaunchArgument('home_duration', default_value='4.0')
 
@@ -40,8 +37,6 @@ def generate_launch_description():
         default_value=os.path.join(pkg_share_path, 'images', 'square.png')
     )
     joint5_angle_arg = DeclareLaunchArgument('joint5_angle', default_value='90.0')
-    hover_height_arg = DeclareLaunchArgument('hover_height', default_value='0.08')
-    enable_debug_view_arg = DeclareLaunchArgument('enable_debug_view', default_value='false')
 
     # shape detector node
     shape_detector = Node(
@@ -58,8 +53,7 @@ def generate_launch_description():
             {'workspace_y_max': 0.13},
             {'workspace_z': LaunchConfiguration('drawing_height')},
             {'smoothing_sigma': LaunchConfiguration('smoothing_sigma')},
-            {'resample_num_pts': LaunchConfiguration('resample_num_pts')},
-            {'enable_debug_view': LaunchConfiguration('enable_debug_view')}
+            {'resample_num_pts': LaunchConfiguration('resample_num_pts')}
         ]
     )
 
@@ -72,10 +66,6 @@ def generate_launch_description():
         parameters=[
             {'trajectory_topic': '/drawing_trajectory'},
             {'drawing_z': LaunchConfiguration('drawing_height')},
-            {'hover_height': LaunchConfiguration('hover_height')},
-            {'home_x': LaunchConfiguration('home_x')},
-            {'home_y': LaunchConfiguration('home_y')},
-            {'home_z': LaunchConfiguration('home_z')},
             {'approach_duration': LaunchConfiguration('approach_duration')},
             {'home_duration': LaunchConfiguration('home_duration')},
             {'joint5_angle': LaunchConfiguration('joint5_angle')}
@@ -86,15 +76,10 @@ def generate_launch_description():
         drawing_height_arg,
         smoothing_sigma_arg,
         resample_num_pts_arg,
-        home_x_arg,
-        home_y_arg,
-        home_z_arg,
         approach_duration_arg,
         home_duration_arg,
         image_path_arg,
         joint5_angle_arg,
-        hover_height_arg,
-        enable_debug_view_arg,
         shape_detector,
         omx_controller
     ])
